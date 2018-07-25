@@ -10,6 +10,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 
+import java.util.List;
+import java.util.Map;
+
 public class CarDiagnosticEngine {
 
 	public void executeDiagnostics(Car car) {
@@ -38,10 +41,72 @@ public class CarDiagnosticEngine {
 		 * Treat the console as information being read by a user of this application. Attempts should be made to ensure
 		 * console output is as least as informative as the provided methods.
 		 */
+		boolean successfulValidation = false;
+		if(validateMakeModelInfo(car)) {
+			if(validateMissingParts(car)) {
+				successfulValidation = validateWorkingParts(car.getParts());
+			}
+		}
 
-
+		if(successfulValidation) {
+			System.out.println("All diagnostic steps completed.");
+		}
 	}
 
+
+	private boolean validateMakeModelInfo(Car car) {
+		boolean hasValidInfo = true;
+		if(car.getMake().isEmpty()) {
+			System.out.println("Car make is required");
+			hasValidInfo = false;
+		}
+
+		if(car.getModel().isEmpty()) {
+			System.out.println("Car model is required");
+			hasValidInfo = false;
+		}
+
+		if(car.getYear().isEmpty()) {
+			System.out.println("Car year is required");
+			hasValidInfo = false;
+		}
+
+		if(!hasValidInfo) {
+			System.out.println("Missing required information, diagnostic ending.");
+		}
+		return hasValidInfo;
+	}
+
+	private boolean validateMissingParts(Car car) {
+		boolean hasAllParts = true;
+		Map<PartType, Integer> missingParts = car.getMissingPartsMap();
+		if(!missingParts.isEmpty()) {
+			hasAllParts = false;
+			for(Map.Entry<PartType, Integer> part : missingParts.entrySet()) {
+				printMissingPart(part.getKey(), part.getValue());
+			}
+		}
+
+		if(!hasAllParts) {
+			System.out.println("Missing required parts, diagnostic ending.");
+		}
+		return hasAllParts;
+	}
+
+
+	private boolean validateWorkingParts(List<Part> parts) {
+		boolean partsWorking = true;
+		for(Part part : parts) {
+			if(!part.isInWorkingCondition()) {
+				partsWorking = false;
+				printDamagedPart(part.getType(), part.getCondition());
+			}
+		}
+		if(!partsWorking) {
+			System.out.println("At least one part damaged, diagnostic ending.");
+		}
+		return partsWorking;
+	}
 	private void printMissingPart(PartType partType, Integer count) {
 		if (partType == null) throw new IllegalArgumentException("PartType must not be null");
 		if (count == null || count <= 0) throw new IllegalArgumentException("Count must be greater than 0");
