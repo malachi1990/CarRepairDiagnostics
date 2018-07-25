@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -31,7 +32,24 @@ public class Car {
 		 *      }
 		 */
 
-		return null;
+		Map<PartType, Integer> missingParts = new HashMap<>();
+
+		for(PartType type : PartType.values()) {
+			long partCount = partTypeCount(type);
+			if(type == PartType.TIRE) {
+				if(partCount < 4) {
+					missingParts.put(type, Integer.valueOf((int) (4 - partCount)));
+				}
+				//the other parts follow the same rules, so no need to branch them out yet
+			} else if(partCount < 1) {
+				missingParts.put(type, 1);
+			}
+		}
+
+		return missingParts;
+	}
+	private long partTypeCount(PartType type) {
+		return parts.stream().filter(part -> part.getType() ==type).count();
 	}
 
 	@Override
